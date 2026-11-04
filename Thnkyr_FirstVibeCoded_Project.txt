@@ -1,0 +1,89 @@
+THYNKR (MABHENA.) - A VIBE CODED AI CHATBOT
+============================================
+
+What is this?
+-------------
+This is just my attempt at building a vibe coded AI chatbot. It's a small,
+single-page chat website that talks to Google's Gemini API using the free
+tier. It's a learning project, not a finished or production-ready product.
+Expect rough edges.
+
+The page is branded "Mabhena." in the header and the bot introduces itself
+as Thynkr.
+
+
+Tech stack
+----------
+- HTML, CSS and vanilla JavaScript, all in one file (thynkr.html)
+- Tailwind CSS (loaded from the CDN) for some layout utilities
+- Google Fonts: Figtree (the logo) and Inter (everything else)
+- Google Gemini API (Google AI Studio free tier), called directly from the
+  browser with fetch()
+- Model used: gemini-3.8-flash (set in the MODEL_NAME line)
+
+No build step, no npm, no server, no backend.
+
+
+How to run it
+-------------
+1. Get a free API key from Google AI Studio (https://aistudio.google.com).
+2. Open thynkr.html in a text editor.
+3. Near the top of the <script> section, find this line and put your own
+   key between the quotes:
+
+       const apiKey = "YOUR_KEY_HERE";
+
+4. Save the file and open thynkr.html in a browser (double-click is fine).
+5. Type a message and press Enter or click Send.
+
+You need an internet connection, since the fonts, Tailwind and the API all
+load from the web.
+
+
+Free tier limits (read this if you get errors)
+----------------------------------------------
+- The free tier has small limits per minute and per day, and they differ by
+  model and account. Check your own limits at https://ai.dev/rate-limit.
+- If you see "You exceeded your current quota", you've probably hit the
+  daily or per-minute cap. Wait for it to reset (daily limits reset at
+  midnight Pacific time) or switch MODEL_NAME to a lighter Flash-Lite model.
+- Google Search grounding is NOT used in this project. It caused quota
+  errors on the free tier, so it was removed. That means the bot has no
+  live web access and may be out of date on recent events.
+- If Google retires a model, you'll get an API error telling you which model
+  to use instead. Just update MODEL_NAME.
+
+
+Known limitations
+-----------------
+- No conversation memory. Each message is sent on its own, so the bot does
+  not remember what you said earlier in the chat.
+- Replies are shown as plain text (no markdown or code formatting).
+- Chat history disappears when you refresh the page.
+- It's a single hard-coded model with no settings menu.
+
+
+SECURITY WARNING
+----------------
+Because everything runs in the browser, the API key sits in the page's
+source code and anyone who can open the page can read it. So:
+
+- Never upload or share this file with a real key inside it.
+- Never commit it to a public GitHub repo with the key in it.
+- If a key is ever exposed, delete it in AI Studio and make a new one.
+- If you put this online, restrict the key to your website's domain in
+  Google AI Studio / Google Cloud, or better, move the API call to a small
+  backend so the key stays on the server.
+
+
+Files
+-----
+thynkr.html   The whole app (markup, styles and script)
+README.txt    This file
+
+
+Credits and honesty note
+------------------------
+Built by me as a hobby/learning project, with a lot of help from AI tools
+(that's the "vibe coded" part). I've tweaked the design and fixed things as
+I went, so if something looks odd or breaks, that's part of the process.

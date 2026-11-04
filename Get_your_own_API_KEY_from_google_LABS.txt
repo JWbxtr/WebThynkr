@@ -1,0 +1,135 @@
+HOW TO GET YOUR OWN FREE GOOGLE AI STUDIO API KEY
+==================================================
+(For use with the Thynkr / Mabhena. chatbot)
+
+Why this guide exists
+---------------------
+The chatbot needs an API key to talk to Google's Gemini AI. I can't share
+my own key (it would be public on GitHub and anyone could use it up, or it
+could get blocked). So everyone who wants to try this project makes their
+own free key. It takes about 2 minutes and doesn't need a credit card.
+
+The website and buttons below may change slightly over time, but the idea
+stays the same.
+
+
+WHAT YOU NEED
+-------------
+- A normal Google account (the same one you use for Gmail or YouTube)
+- A web browser and an internet connection
+- Google AI Studio must be available in your country. If the site says it
+  isn't available where you are, you won't be able to get a key.
+
+
+PART 1: GET THE KEY
+-------------------
+Step 1. Open your browser and go to:
+
+            https://aistudio.google.com
+
+Step 2. Sign in with your Google account.
+
+Step 3. The first time you visit, Google shows some pop-ups. You may need
+        to:
+          - accept the terms of service
+          - confirm your country/region
+          - accept the data and privacy notice
+        Tick the boxes and click Continue / Accept.
+
+Step 4. Find the "Get API key" button. It is usually in the left sidebar
+        (sometimes shown as a key icon). You can also go straight to:
+
+            https://aistudio.google.com/app/apikey
+
+Step 5. Click "Create API key".
+
+Step 6. Google may ask you to choose a project:
+          - "Create API key in new project" is the easiest option and the
+            one I recommend. Google sets everything up for you.
+          - Or pick an existing project if you already have one.
+
+Step 7. Your key appears on the screen. Click the copy button to copy it.
+        Keys usually start with "AIza", though newer ones can look
+        different. Don't worry if yours starts differently.
+
+Step 8. Paste it somewhere safe for now, such as a private notes app.
+        Treat it like a password. You can open the API keys page again
+        later to see it if you lose it.
+
+
+PART 2: PUT THE KEY IN THE CHATBOT
+----------------------------------
+Step 1. Open thynkr.html in a text editor (Notepad, VS Code, TextEdit,
+        etc.).
+
+Step 2. Scroll down to the <script> section near the bottom and find:
+
+            const apiKey = "YOUR_KEY_HERE";
+
+Step 3. Replace YOUR_KEY_HERE with the key you copied. Keep the quote
+        marks around it, like this:
+
+            const apiKey = "paste-your-real-key-here";
+
+Step 4. Save the file.
+
+Step 5. Open thynkr.html in your browser, type "hi" and press Enter. If
+        the bot replies, it works.
+
+
+PART 3: KEEP YOUR KEY SAFE
+--------------------------
+- NEVER upload thynkr.html to GitHub, send it to friends, or post it
+  online while your real key is inside it.
+- Before sharing the project, put the placeholder back:
+      const apiKey = "YOUR_KEY_HERE";
+- GitHub also scans uploads for API keys and may block or flag them. That
+  is a good thing: it means your key never goes public by accident.
+- If your key leaks, go back to the API keys page, delete it, and create a
+  new one. The old one stops working right away.
+- Because this chatbot runs in the browser, anyone who opens the page can
+  see the key in the page source. That is fine for private testing on your
+  own computer. If you put the site online, restrict the key to your
+  website's domain in Google AI Studio / Google Cloud, or move the API call
+  to a small backend server.
+
+
+PART 4: THE FREE TIER (WHAT TO EXPECT)
+--------------------------------------
+- The free tier doesn't need billing set up.
+- It has limits on requests per minute and per day. They are small and
+  change by model and account.
+- To see YOUR limits, go to: https://ai.dev/rate-limit
+- If you see "You exceeded your current quota", you hit a limit. Wait a bit
+  (daily limits reset at midnight Pacific time) or switch to a lighter
+  Flash-Lite model by changing the MODEL_NAME line in the code.
+- Creating extra keys inside the same project does not give you more quota.
+- Free usage may be used by Google to improve their products, so don't type
+  private or sensitive information into the chatbot.
+
+
+TROUBLESHOOTING
+---------------
+"API key not valid"
+    The key was copied wrong, has extra spaces, or the quote marks got
+    deleted. Copy it again and paste it carefully between the quotes.
+
+"Model is no longer available" or "model not found"
+    Google retires old models. Read the error: it usually names the new
+    model. Put that name in the MODEL_NAME line.
+
+"You exceeded your current quota"
+    See Part 4 above.
+
+Can't find "Get API key"
+    Google moves buttons around. Try the direct link
+    https://aistudio.google.com/app/apikey or look for a key icon in the
+    sidebar.
+
+Nothing happens when you click Send
+    Press F12 in your browser, open the Console tab and read the error
+    message. Check your internet and that the key is inside the quotes.
+
+
+That's it! If you build something cool with it, awesome. Keep your key
+private and have fun.

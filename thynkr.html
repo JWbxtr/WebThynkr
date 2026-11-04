@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic setup and responsiveness -->
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thynkr Chatbot - Nexus Edition</title>
+    <!-- Load Tailwind CSS for utility-first styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg: #141414;
+            --panel: #1b1b1b;
+            --raised: #252525;
+            --line: #2e2e2e;
+            --text: #e6e4e0;
+            --muted: #85827d;
+            --accent: #f0a030;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .brand {
+            font-family: 'Figtree', sans-serif;
+            font-weight: 800;
+            font-size: 2.25rem;
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+        .brand span { color: var(--accent); }
+
+        .container {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+        }
+
+        .header { border-bottom: 1px solid var(--line); }
+
+        /* messages */
+        .msg { max-width: 82%; line-height: 1.55; font-size: 0.95rem; }
+        .msg .who {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 3px;
+        }
+        .msg .body { white-space: pre-wrap; word-wrap: break-word; }
+
+        .msg.user { align-self: flex-end; }
+        .msg.user .body {
+            background: var(--raised);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 9px 13px;
+        }
+        .msg.user .who { text-align: right; }
+
+        .msg.ai { align-self: flex-start; }
+        .msg.ai .body { padding: 2px 0 2px 12px; border-left: 2px solid var(--line); }
+
+        .msg.thinking .body { color: var(--muted); font-style: italic; }
+
+        /* input row */
+        .input-area { border-top: 1px solid var(--line); gap: 8px; }
+
+        #user-input {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: var(--text);
+            padding: 10px 12px;
+            font-size: 0.95rem;
+        }
+        #user-input::placeholder { color: var(--muted); }
+        #user-input:focus { outline: none; border-color: var(--accent); }
+
+        #send-btn {
+            background: var(--accent);
+            color: #1a1200;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 10px 20px;
+            transition: background 0.15s;
+        }
+        #send-btn:hover { background: #d98d22; }
+        #send-btn:disabled, #user-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .chat-box::-webkit-scrollbar { width: 6px; }
+        .chat-box::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="container w-full max-w-xl flex flex-col h-[90vh] min-h-[550px] overflow-hidden">
+
+        <div class="header px-5 py-4">
+            <div class="brand">Mabhena<span>.</span></div> 
+<!-- YOU cn add your own name to whaterver you want to name your bot -->
+
+            <p class="text-xs mt-2" style="color: var(--muted);">A conversational model.</p>
+        </div>
+
+        <div id="chat-box" class="chat-box flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+            <div class="msg ai">
+                <div class="who">Thynkr</div>
+                <div class="body">Hello! I'm Thynkr, your personal AI assistant. What's on your mind today?</div>
+            </div>
+        </div>
+
+        <div class="input-area flex p-4">
+            <input
+                id="user-input"
+                type="text"
+                placeholder="Ask Thynkr something..."
+                autocomplete="off"
+                class="flex-1"
+            />
+            <button id="send-btn">Send</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- API setup ---
+        // IMPORTANT: Do NOT hardcode your API key in a public repo.
+        // Set it via a local config file, environment variable, or a backend proxy.
+        // For local testing only, replace the placeholder below and DO NOT commit it.
+        const apiKey = "YOUR_API_KEY_HERE";
+
+        // If you hit the daily limit, try a Flash-Lite model here instead
+        const MODEL_NAME = "gemini-1.5-flash";
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`;
+
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+        const sendBtn = document.getElementById("send-btn");
+
+        /** Adds a message to the chat. textContent keeps API text from being injected as HTML. */
+        function createMessage(text, sender) {
+            const wrap = document.createElement("div");
+            wrap.className = "msg " + sender;
+
+            const who = document.createElement("div");
+            who.className = "who";
+            who.textContent = sender === "user" ? "You" : "Thynkr";
+
+            const body = document.createElement("div");
+            body.className = "body";
+            body.textContent = text;
+
+            wrap.append(who, body);
+            chatBox.appendChild(wrap);
+            return wrap;
+        }
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        /** Calls Gemini with retries on server errors. Returns the reply text. */
+        async function getAIResponse(prompt) {
+            const MAX_RETRIES = 3;
+            const BASE_DELAY_MS = 1000;
+
+            for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                try {
+                    const payload = {
+                        contents: [{ role: "user", parts: [{ text: prompt }] }]
+                    };
+
+                    const response = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        const errorMsg = data.error?.message || `HTTP Error: ${response.status} ${response.statusText}`;
+                        if (response.status >= 500 && attempt < MAX_RETRIES - 1) {
+                            throw new Error("Retryable Server Error");
+                        }
+                        return "API error: " + errorMsg;
+                    }
+
+                    const parts = data.candidates?.[0]?.content?.parts || [];
+                    const aiText = parts.map(p => p.text || "").join("").trim();
+
+                    return aiText || "No text response received from the model.";
+
+                } catch (err) {
+                    if (attempt < MAX_RETRIES - 1) {
+                        const delay = BASE_DELAY_MS * Math.pow(2, attempt) + Math.random() * 500;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+                    console.error("Final network error:", err);
+                    return "Network error. Check the console for details.";
+                }
+            }
+            return "The AI service is unavailable right now. Try again later.";
+        }
+
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (!userText) return;
+
+            userInput.value = "";
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            createMessage(userText, "user");
+            const thinkingMsg = createMessage("Thinking...", "ai");
+            thinkingMsg.classList.add("thinking");
+            scrollToBottom();
+
+            const reply = await getAIResponse(userText);
+
+            chatBox.removeChild(thinkingMsg);
+            createMessage(reply, "ai");
+
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.focus();
+            scrollToBottom();
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        userInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !sendBtn.disabled) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
